@@ -6,6 +6,12 @@ import (
 	"os"
 	"encoding/binary"
 	"reflect"
+	"flag"
+	"strings"
+)
+
+var (
+	notime = flag.Bool("notime", false, "omit times")
 )
 
 type Inode struct {
@@ -113,6 +119,9 @@ func report() {
 		ty := reflect.TypeOf(dups[i])
 		for j := 0; j < ty.NumField(); j++ {
 			e := s.Field(j)
+			if *notime && strings.Contains(ty.Field(j).Name, "Time") {
+				continue
+			}
 			if e.Len() > 1 {
 				fmt.Printf("%s %v\n", ty.Field(j).Name, e.Interface())
 			}
@@ -122,8 +131,10 @@ func report() {
 }
 
 func main() {
-	for i := 1; i < len(os.Args); i++ {
-		scan(os.Args[i])
+	// TODO set flag.Usage
+	flag.Parse()
+	for i := 0; i < flag.NArg(); i++ {
+		scan(flag.Arg(i))
 	}
 	report()
 }
